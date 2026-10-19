@@ -10,8 +10,11 @@ import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestClientResponseException;
 import schultz.thomas.schub.connector.premadelab.api.dto.DirectMessageResult;
+import schultz.thomas.schub.connector.premadelab.api.dto.Embed;
 import schultz.thomas.schub.connector.premadelab.config.DiscordProperties;
 
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -28,7 +31,7 @@ public class DirectMessageService {
     private final DiscordProperties properties;
     private final ObjectMapper objectMapper;
 
-    public DirectMessageResult send(String discordId, String content) {
+    public DirectMessageResult send(String discordId, String content, List<Embed> embeds) {
         if (!properties.configured()) {
             return new DirectMessageResult(DirectMessageResult.Status.DISABLED, "Aucun jeton de bot configuré");
         }
@@ -43,7 +46,7 @@ public class DirectMessageService {
             }
             appel(() -> discordRestClient.post().uri("/channels/{id}/messages", salonId)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .body(Map.of("content", content))
+                    .body(message(content, embeds))
                     .retrieve().toBodilessEntity());
             return new DirectMessageResult(DirectMessageResult.Status.SENT, null);
         } catch (RestClientResponseException refus) {
@@ -81,6 +84,17 @@ public class DirectMessageService {
             }
             return requete.get();
         }
+    }
+
+    private static Map<String, Object> message(String content, List<Embed> embeds) {
+        Map<String, Object> message = new HashMap<>();
+        if (content != null && !content.isBlank()) {
+            message.put("content", content);
+        }
+        if (embeds != null && !embeds.isEmpty()) {
+            message.put("embeds", embeds);
+        }
+        return message;
     }
 
     private int codeDiscord(RestClientResponseException refus) {
