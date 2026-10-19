@@ -22,6 +22,6 @@ public class DirectMessageController {
             description = "Toujours 200 : le refus de Discord est dans `status`, jamais une erreur 500.")
     @PostMapping("/dm")
     public DirectMessageResult send(@Valid @RequestBody DirectMessageRequest request) {
-        return messages.send(request.discordId(), request.content());
+        return messages.send(request.discordId(), request.content(), request.embeds());
     }
 }
